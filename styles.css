@@ -112,8 +112,40 @@ p { margin: 0 0 1em; }
 .hero__contours path { vector-effect: non-scaling-stroke; }
 
 /* Birds */
-.birds { position: absolute; inset: 0; }
+.birds { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
 .bird { position: absolute; left: 0; top: 0; will-change: transform, opacity; }
+.bird__hit { position: absolute; left: -20px; top: -30px; width: 40px; height: 36px; border-radius: 50%; }
+.bird.is-perched .bird__hit { pointer-events: auto; cursor: pointer; }
+
+/* perched actions */
+.bird__wing { transform-origin: 23px 15px; }
+.bird__head { transform-origin: 24px 14px; }
+.bird.is-stretch .bird__wing { animation: stretch 1.3s ease-in-out; }
+.bird.is-preen .bird__head { animation: preen 1.5s ease-in-out; }
+.bird.is-poop .bird__tail { animation: tailup .8s ease-in-out; }
+@keyframes stretch { 0%, 100% { transform: none; } 18%, 54% { transform: rotate(-32deg) translateY(-1px); } 36%, 72% { transform: rotate(-10deg); } }
+@keyframes preen { 0%, 100% { transform: none; } 22%, 62% { transform: rotate(40deg) translate(-1px, 1.5px); } 42%, 82% { transform: rotate(26deg) translate(-.5px, 1px); } }
+@keyframes tailup { 0%, 100% { transform: none; } 30%, 70% { transform: rotate(18deg); } }
+
+.poop {
+  position: absolute; width: 3.5px; height: 4.5px; margin: -2px 0 0 -2px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: radial-gradient(circle at 50% 60%, #8d8d7a 0 25%, #fff 30%); box-shadow: 0 0 0 .5px rgba(0,0,0,.25);
+  animation: fall .9s cubic-bezier(.55, 0, 1, .45) forwards;
+}
+@keyframes fall { to { transform: translateY(var(--fall, 120px)); opacity: 0; } }
+
+/* insects */
+.insect { position: absolute; left: 0; top: 0; width: 0; height: 0; transition: opacity .2s; }
+.insect::before {
+  content: ""; position: absolute; left: -1.75px; top: -1.25px; width: 3.5px; height: 2.5px; border-radius: 50%; background: #2b2a26;
+}
+.insect::after {
+  content: ""; position: absolute; left: -2.5px; top: -4px; width: 5px; height: 3px; border-radius: 50%;
+  background: rgba(255,255,255,.75); box-shadow: 0 0 0 .5px rgba(43,42,38,.35);
+  animation: buzz .06s linear infinite alternate;
+}
+.insect.is-eaten { opacity: 0; }
+@keyframes buzz { to { transform: scaleY(.3) translateY(2px); opacity: .5; } }
 .bird__body { position: absolute; transform: scale(calc(var(--s, 1) * var(--dir, 1)), var(--s, 1)); transition: transform .3s var(--ease); }
 .bird svg { position: absolute; overflow: visible; filter: drop-shadow(0 1px 1px rgba(10, 31, 23, .18)); }
 .bird__fly { width: 40px; height: 25px; left: -20px; top: -12.5px; }
@@ -123,6 +155,7 @@ p { margin: 0 0 1em; }
 .bird.is-coasting .w-near, .bird.is-coasting .w-far { animation: none; transform: scaleY(.42) skewX(-8deg); }
 .bird__sit { width: 30px; height: 24px; left: -14px; top: -21px; display: none; transform-origin: 46% 87%; }
 .bird__tail { transform-origin: 10px 19px; animation: flick 4.5s ease-in-out var(--flick, 0s) infinite; }
+.bird.is-perched .bird__sit { pointer-events: none; }
 .bird.is-perched .bird__fly { display: none; }
 .bird.is-perched .bird__sit { display: block; animation: settle .5s var(--ease), idle 3s ease-in-out .5s infinite; }
 /* fast downstroke, slower recovery upstroke; tips lag slightly */

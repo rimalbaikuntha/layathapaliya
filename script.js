@@ -122,16 +122,16 @@
   });
 })();
 
-/* ============ Birds: fly in, perch on the wires, fly away ============ */
+/* ============ Birds: perch on the wires, live a little, chase insects ============ */
 (() => {
   const hero = document.querySelector('.hero');
-  const bg = hero && hero.querySelector('.hero__bg');
   const wires = hero ? [...hero.querySelectorAll('.hero__contours path')] : [];
-  if (!bg || !wires.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (!hero || !wires.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   const layer = document.createElement('div');
   layer.className = 'birds';
-  bg.appendChild(layer);
+  layer.setAttribute('aria-hidden', 'true');
+  hero.appendChild(layer);
 
   // Real birds commonly seen on wires in Nepal
   const SPECIES = [
@@ -155,17 +155,21 @@
       <path d="M8 19C8 13 14 10 21 11C26 12 28.5 15 27.5 19C26.5 23 21.5 25.2 16 24.8C11 24.4 8 22.2 8 19Z" fill="${s.back}"/>
       <path d="M27.6 15.5C28.6 19.5 26 23.6 20 24.9C16 25.5 12.5 24.3 11 22.5C15 23 21 22 24 19.5C25.8 18 26.8 16.8 27.6 15.5Z" fill="${s.belly}"/>
       ${s.vent ? `<ellipse cx="12.5" cy="22.8" rx="2.3" ry="1.4" fill="${s.vent}"/>` : ''}
-      <path d="M9 18.5C12 14 19 12.8 24.5 15.5C22 19.5 16 22 6.5 23Z" fill="${s.wing}"/>
-      <path d="M11 20.5C15 19 19 17.5 22.5 16.5M9 21.8C13 21 17 19.5 21 18" stroke="rgba(0,0,0,.28)" stroke-width=".6" fill="none"/>
-      ${s.bar ? `<path d="M13 17.6C16 16 19 15.5 22 15.9" stroke="${s.bar}" stroke-width="1.1" fill="none" stroke-linecap="round"/>` : ''}
       <path d="M12 15C16 11.5 22 11 25 13C20 12.8 15 14 12 16Z" fill="#fff" opacity=".22"/>
+      <g class="bird__wing">
+        <path d="M9 18.5C12 14 19 12.8 24.5 15.5C22 19.5 16 22 6.5 23Z" fill="${s.wing}"/>
+        <path d="M11 20.5C15 19 19 17.5 22.5 16.5M9 21.8C13 21 17 19.5 21 18" stroke="rgba(0,0,0,.28)" stroke-width=".6" fill="none"/>
+        ${s.bar ? `<path d="M13 17.6C16 16 19 15.5 22 15.9" stroke="${s.bar}" stroke-width="1.1" fill="none" stroke-linecap="round"/>` : ''}
+      </g>
       <path d="M16.6 24.4 L16.9 27.6M19.8 24.2 L20 27.6M15.3 28C16 27.4 17.6 27.4 18.3 28M18.6 28C19.3 27.4 20.9 27.4 21.6 28" stroke="${s.feet}" stroke-width="1" stroke-linecap="round" fill="none"/>
-      ${s.crest ? `<path d="M23 8.5 L24.8 3.2 L28 6.8Z" fill="${s.head}"/>` : ''}
-      <circle cx="27" cy="11" r="5.2" fill="${s.head}"/>
-      <path d="M23.5 13.2C25 17.6 30.2 17.4 32 13C30.5 14.6 26.5 15.6 23.5 13.2Z" fill="${s.throat}"/>
-      ${s.stripe ? '<path d="M23.5 9.4 L33.5 10.4 L33.5 12 L23.5 11.6Z" fill="#111"/>' : ''}
-      <circle cx="28.8" cy="10.2" r="1.2" fill="#0d0d0d"/><circle cx="29.2" cy="9.7" r=".42" fill="#fff"/>
-      <path d="${BEAK_SIT[s.beakType]}" fill="${s.beak}"/>
+      <g class="bird__head">
+        ${s.crest ? `<path d="M23 8.5 L24.8 3.2 L28 6.8Z" fill="${s.head}"/>` : ''}
+        <circle cx="27" cy="11" r="5.2" fill="${s.head}"/>
+        <path d="M23.5 13.2C25 17.6 30.2 17.4 32 13C30.5 14.6 26.5 15.6 23.5 13.2Z" fill="${s.throat}"/>
+        ${s.stripe ? '<path d="M23.5 9.4 L33.5 10.4 L33.5 12 L23.5 11.6Z" fill="#111"/>' : ''}
+        <circle cx="28.8" cy="10.2" r="1.2" fill="#0d0d0d"/><circle cx="29.2" cy="9.7" r=".42" fill="#fff"/>
+        <path d="${BEAK_SIT[s.beakType]}" fill="${s.beak}"/>
+      </g>
     </svg>`;
   }
 
@@ -194,13 +198,17 @@
     </svg>`;
   }
 
+  /* ---------- helpers ---------- */
   const rand = (a, b) => a + Math.random() * (b - a);
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
   const easeOut = p => 1 - Math.pow(1 - p, 3);
   const easeIn = p => p * p;
   const easeInOut = p => p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
   const box = () => layer.getBoundingClientRect();
   const isMobile = () => innerWidth < 860;
-  const perched = new Map(); // bird element -> spot on wire
+  const birds = new Set();
+  const insects = [];
+  let heroVisible = true;
 
   // Exact on-screen position of a point on a wire (handles the stretched SVG)
   function wirePoint(path, len) {
@@ -208,7 +216,7 @@
     return { x: p.x * m.a + p.y * m.c + m.e - r.left, y: p.x * m.b + p.y * m.d + m.f - r.top };
   }
 
-  // Keep birds from landing behind the text, the photo or the menu
+  // Keep birds off the text, the photo and the menu
   function isBlocked(x, y) {
     const r = box();
     if (y < 90) return true;
@@ -218,130 +226,332 @@
     });
   }
 
-  function findPerch() {
-    const r = box();
-    for (let i = 0; i < 24; i++) {
-      const path = wires[Math.floor(Math.random() * wires.length)];
-      const len = path.getTotalLength() * rand(.03, .97);
-      const pt = wirePoint(path, len);
-      if (pt.x < 16 || pt.x > r.width - 16 || pt.y < 0 || pt.y > r.height - 10) continue;
-      if (isBlocked(pt.x, pt.y)) continue;
-      const crowded = [...perched.values()].some(s => {
-        const q = wirePoint(s.path, s.len);
-        return Math.hypot(q.x - pt.x, q.y - pt.y) < 24;
-      });
-      if (!crowded) return { path, len, ...pt };
+  function isCrowded(pt, self) {
+    for (const b of birds) {
+      if (b === self || !b.spot) continue;
+      const q = wirePoint(b.spot.path, b.spot.len);
+      if (Math.hypot(q.x - pt.x, q.y - pt.y) < 26) return true;
+    }
+    return false;
+  }
+
+  function validSpot(path, len, self) {
+    const r = box(), pt = wirePoint(path, len);
+    if (pt.x < 16 || pt.x > r.width - 16 || pt.y < 0 || pt.y > r.height - 10) return null;
+    if (isBlocked(pt.x, pt.y) || isCrowded(pt, self)) return null;
+    return { path, len, ...pt };
+  }
+
+  // Random free spot; optionally near a point (for hopping between wires)
+  function findPerch(self, near) {
+    for (let i = 0; i < 40; i++) {
+      const path = pick(wires);
+      const spot = validSpot(path, path.getTotalLength() * rand(.03, .97), self);
+      if (!spot) continue;
+      if (near) {
+        const d = Math.hypot(spot.x - near.x, spot.y - near.y);
+        if (d < 30 || d > 170 || (path === near.path && Math.random() < .6)) continue;
+      }
+      return spot;
     }
     return null;
   }
 
   function edgePoint(avoid) {
     const r = box();
-    const sides = ['left', 'right', 'top', 'left', 'right'].filter(s => s !== avoid);
-    const side = sides[Math.floor(Math.random() * sides.length)];
+    const side = pick(['left', 'right', 'top', 'left', 'right'].filter(s => s !== avoid));
     if (side === 'left') return { side, x: -30, y: rand(.05, .65) * r.height };
     if (side === 'right') return { side, x: r.width + 30, y: rand(.05, .65) * r.height };
     return { side, x: rand(.1, .9) * r.width, y: -30 };
   }
 
-  // Curved, slightly fluttering flight between two points
-  function fly(bird, a, b, dur, ease, opts, done) {
-    const { el, body } = bird;
-    const dx = b.x - a.x, dy = b.y - a.y, dist = Math.hypot(dx, dy) || 1;
-    const bend = (Math.random() < .5 ? -1 : 1) * dist * rand(.1, .28);
-    const c = { x: (a.x + b.x) / 2 - dy / dist * bend, y: (a.y + b.y) / 2 + dx / dist * bend - dist * .08 };
-    const wob = rand(2, 5), freq = rand(3, 6), t0 = performance.now();
+  const getDir = b => +b.body.style.getPropertyValue('--dir') || 1;
+  const setDir = (b, d) => b.body.style.setProperty('--dir', d);
+  const place = (b, x, y) => { b.el.style.transform = `translate3d(${x}px, ${y}px, 0)`; };
+
+  /* ---------- flight ---------- */
+  // Curved, slightly fluttering flight. `to` may be a function (moving target, e.g. an insect).
+  function fly(bird, a, to, dur, ease, opts, done) {
+    const target = typeof to === 'function' ? to : () => to;
+    const b0 = target();
+    const dx = b0.x - a.x, dy = b0.y - a.y, dist = Math.hypot(dx, dy) || 1;
+    const bend = (Math.random() < .5 ? -1 : 1) * dist * (opts.bend ?? rand(.1, .28));
+    const lift = opts.lift ?? .08;
+    const off = { x: -dy / dist * bend, y: dx / dist * bend - dist * lift };
+    const wob = opts.steady ? 0 : rand(2, 5), freq = rand(3, 6), t0 = performance.now();
     let lastX = a.x;
+    bird.el.classList.remove('is-perched');
     (function step(now) {
+      if (!bird.el.isConnected) return;
+      const b = target();
+      const c = { x: (a.x + b.x) / 2 + off.x, y: (a.y + b.y) / 2 + off.y };
       const p = Math.min((now - t0) / dur, 1), e = ease(p), u = 1 - e;
       const settle = opts.land ? 1 - p : 1;
       const x = u * u * a.x + 2 * u * e * c.x + e * e * b.x;
       const y = u * u * a.y + 2 * u * e * c.y + e * e * b.y + Math.sin(p * Math.PI * freq) * wob * settle;
-      if (Math.abs(x - lastX) > .4) body.style.setProperty('--dir', x > lastX ? 1 : -1);
+      if (Math.abs(x - lastX) > .4) setDir(bird, x > lastX ? 1 : -1);
       lastX = x;
-      el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      place(bird, x, y);
       let o = 1;
       if (opts.fadeIn) o = Math.min(o, p / .1);
       if (opts.fadeOut && p > .4) o = 1 - (p - .4) / .6;
-      el.style.opacity = o;
-      if (opts.land) el.classList.toggle('is-gliding', p > .82);
-      if (p < 1) requestAnimationFrame(step); else done();
+      bird.el.style.opacity = o;
+      if (opts.land) bird.el.classList.toggle('is-gliding', p > .8);
+      if (p < 1) requestAnimationFrame(step); else done && done();
     })(t0);
   }
 
+  function land(bird, spot) {
+    bird.spot = spot;
+    const pt = wirePoint(spot.path, spot.len);
+    place(bird, pt.x, pt.y);
+    bird.el.classList.remove('is-gliding');
+    bird.el.classList.add('is-perched');
+    bird.state = 'perched';
+    if (bird.scared) return leave(bird);
+    schedule(bird);
+  }
+
+  function leave(bird, startled) {
+    clearTimeout(bird.timer);
+    bird.state = 'leaving';
+    const from = bird.spot ? wirePoint(bird.spot.path, bird.spot.len) : null;
+    bird.spot = null;
+    if (!from) return;
+    const ang = rand(-160, -20) * Math.PI / 180, d = rand(550, 950);
+    fly(bird, { x: from.x, y: from.y - 10 }, { x: from.x + Math.cos(ang) * d, y: from.y + Math.sin(ang) * d },
+      startled ? rand(1700, 2400) : rand(2600, 3800), easeIn, { fadeOut: true }, () => remove(bird));
+  }
+
+  function remove(bird) {
+    clearTimeout(bird.timer);
+    birds.delete(bird);
+    bird.el.remove();
+  }
+
+  /* ---------- life on the wire ---------- */
+  function schedule(bird, delay) {
+    clearTimeout(bird.timer);
+    bird.timer = setTimeout(() => act(bird), delay ?? rand(1600, 3800));
+  }
+
+  function play(bird, cls, ms) {
+    bird.el.classList.add(cls);
+    setTimeout(() => { bird.el.classList.remove(cls); if (bird.state === 'perched') schedule(bird); }, ms);
+  }
+
+  function act(bird) {
+    if (bird.state !== 'perched') return;
+    if (performance.now() > bird.leaveAt) return leave(bird);
+    if (!heroVisible || document.hidden) return schedule(bird, 2000);
+
+    const prey = nearestInsect(bird, 300);
+    if (prey && Math.random() < .4) return sally(bird, prey);
+
+    const roll = Math.random() * 15;
+    if (roll < 3) return shuffle(bird);
+    if (roll < 5) return hop(bird);
+    if (roll < 7) return play(bird, 'is-stretch', 1300);   // wing stretch / flutter
+    if (roll < 9) return play(bird, 'is-preen', 1500);     // preen chest feathers
+    if (roll < 11) { setDir(bird, -getDir(bird)); return schedule(bird); } // look the other way
+    if (roll < 12) return poop(bird);
+    schedule(bird); // just sit and enjoy the view
+  }
+
+  // Sidestep a little along the same wire
+  function shuffle(bird) {
+    const { path } = bird.spot;
+    const total = path.getTotalLength();
+    const p0 = wirePoint(path, bird.spot.len), p1 = wirePoint(path, Math.min(total, bird.spot.len + 10));
+    const unitsPerPx = 10 / (Math.hypot(p1.x - p0.x, p1.y - p0.y) || 1);
+    const dir = Math.random() < .5 ? -1 : 1;
+    const steps = 2 + Math.floor(Math.random() * 3);
+    const endLen = bird.spot.len + dir * steps * rand(6, 9) * unitsPerPx;
+    if (endLen < 0 || endLen > total || !validSpot(path, endLen, bird)) return schedule(bird);
+    setDir(bird, dir);
+    const startLen = bird.spot.len, dur = steps * 190, t0 = performance.now();
+    bird.state = 'busy';
+    (function step(now) {
+      if (!bird.el.isConnected) return;
+      const p = Math.min((now - t0) / dur, 1);
+      const len = startLen + (endLen - startLen) * p;
+      const pt = wirePoint(path, len);
+      place(bird, pt.x, pt.y - Math.abs(Math.sin(p * Math.PI * steps)) * 3);
+      bird.spot.len = len;
+      if (p < 1) return requestAnimationFrame(step);
+      bird.state = 'perched';
+      if (bird.scared) return leave(bird, true);
+      schedule(bird);
+    })(t0);
+  }
+
+  // Jump across to a nearby wire
+  function hop(bird) {
+    const from = wirePoint(bird.spot.path, bird.spot.len);
+    const spot = findPerch(bird, { ...from, path: bird.spot.path });
+    if (!spot) return schedule(bird);
+    bird.state = 'busy';
+    bird.spot = spot; // reserve the new spot
+    fly(bird, { x: from.x, y: from.y - 10 }, { x: spot.x, y: spot.y - 10 }, rand(650, 950), easeInOut,
+      { land: true, bend: rand(.05, .15), lift: .35, steady: true }, () => land(bird, spot));
+  }
+
+  // Lift the tail and drop a little something
+  function poop(bird) {
+    bird.el.classList.add('is-poop');
+    setTimeout(() => {
+      const pt = wirePoint(bird.spot.path, bird.spot.len);
+      const s = +bird.body.style.getPropertyValue('--s') || 1;
+      const drop = document.createElement('span');
+      drop.className = 'poop';
+      drop.style.left = `${pt.x - 10 * getDir(bird) * s}px`;
+      drop.style.top = `${pt.y - 3}px`;
+      drop.style.setProperty('--fall', `${rand(90, 160)}px`);
+      layer.appendChild(drop);
+      drop.addEventListener('animationend', () => drop.remove());
+    }, 350);
+    play(bird, 'is-poop', 800);
+  }
+
+  /* ---------- insects ---------- */
+  function addInsect() {
+    const r = box();
+    for (let i = 0; i < 25; i++) {
+      const path = pick(wires);
+      const pt = wirePoint(path, path.getTotalLength() * rand(.05, .95));
+      const hy = pt.y - rand(25, 80);
+      if (pt.x < 30 || pt.x > r.width - 30 || hy < 100 || isBlocked(pt.x, hy)) continue;
+      const el = document.createElement('span');
+      el.className = 'insect';
+      layer.appendChild(el);
+      insects.push({ el, x: pt.x, y: hy, hx: pt.x, hy, vx: 0, vy: 0, hunted: false });
+      return;
+    }
+  }
+
+  function nearestInsect(bird, maxDist) {
+    const pt = wirePoint(bird.spot.path, bird.spot.len);
+    let best = null, bestD = maxDist;
+    insects.forEach(i => {
+      if (i.hunted) return;
+      const d = Math.hypot(i.x - pt.x, i.y - pt.y);
+      if (d < bestD) { best = i; bestD = d; }
+    });
+    return best;
+  }
+
+  // Dart out, snap the insect mid-air, and return to a perch
+  function sally(bird, prey) {
+    const home = bird.spot;
+    const from = wirePoint(home.path, home.len);
+    prey.hunted = true;
+    bird.state = 'busy';
+    fly(bird, { x: from.x, y: from.y - 10 }, () => ({ x: prey.x, y: prey.y }), rand(700, 1000), easeInOut,
+      { bend: rand(.05, .2), lift: .1, steady: true }, () => {
+        eat(prey);
+        bird.el.classList.add('is-coasting');
+        setTimeout(() => bird.el.classList.remove('is-coasting'), 300);
+        if (bird.scared) { bird.spot = home; return leave(bird, true); }
+        const back = validSpot(home.path, home.len, bird) || findPerch(bird, { x: prey.x, y: prey.y, path: null });
+        if (!back) { bird.spot = home; return leave(bird); }
+        bird.spot = back;
+        const here = { x: prey.x, y: prey.y };
+        fly(bird, here, { x: back.x, y: back.y - 10 }, rand(800, 1100), easeOut, { land: true, bend: rand(.1, .2), steady: true }, () => land(bird, back));
+      });
+  }
+
+  function eat(prey) {
+    const idx = insects.indexOf(prey);
+    if (idx > -1) insects.splice(idx, 1);
+    prey.el.classList.add('is-eaten');
+    setTimeout(() => prey.el.remove(), 250);
+    setTimeout(addInsect, rand(4000, 9000));
+  }
+
+  // Gnat-like wandering around a slowly drifting home point
+  let lastT = performance.now();
+  function insectLoop(now) {
+    const dt = Math.min((now - lastT) / 16.7, 3);
+    lastT = now;
+    if (heroVisible && !document.hidden) {
+      insects.forEach(i => {
+        if (!i.hunted) { i.hx += rand(-.4, .4) * dt; i.hy += rand(-.3, .3) * dt; }
+        i.vx += (rand(-.55, .55) - (i.x - i.hx) * .004) * dt;
+        i.vy += (rand(-.55, .55) - (i.y - i.hy) * .004) * dt;
+        i.vx *= .93; i.vy *= .93;
+        const sp = Math.hypot(i.vx, i.vy), max = i.hunted ? 3 : 1.8;
+        if (sp > max) { i.vx *= max / sp; i.vy *= max / sp; }
+        i.x += i.vx * dt; i.y += i.vy * dt;
+        i.el.style.transform = `translate3d(${i.x}px, ${i.y}px, 0)`;
+      });
+    }
+    requestAnimationFrame(insectLoop);
+  }
+
+  /* ---------- arrivals ---------- */
   function spawn(origin, species) {
-    const sp = species || SPECIES[Math.floor(Math.random() * SPECIES.length)];
+    const sp = species || pick(SPECIES);
     const el = document.createElement('div');
     el.className = 'bird';
-    el.innerHTML = `<div class="bird__body">${flySVG(sp)}${sitSVG(sp)}</div>`;
+    el.innerHTML = `<div class="bird__body">${flySVG(sp)}${sitSVG(sp)}<span class="bird__hit" title="Shoo!"></span></div>`;
     const body = el.firstChild;
     body.style.setProperty('--s', rand(.85, 1.1).toFixed(2));
     body.style.setProperty('--flap', rand(.26, .34).toFixed(2) + 's');
     body.style.setProperty('--flick', rand(-4, 0).toFixed(2) + 's');
-    // natural flap-flap-glide rhythm while in the air
+    layer.appendChild(el);
+    const bird = { el, body, spot: null, state: 'arriving', timer: 0, scared: false, leaveAt: performance.now() + rand(90000, 180000) };
+    birds.add(bird);
+
+    // flap-flap-glide rhythm while in the air
     const coast = setInterval(() => {
       if (!el.isConnected) return clearInterval(coast);
-      if (el.classList.contains('is-perched') || Math.random() < .45) return;
+      if (bird.state === 'perched' || Math.random() < .45) return;
       el.classList.add('is-coasting');
       setTimeout(() => el.classList.remove('is-coasting'), rand(450, 1000));
     }, rand(1300, 2100));
-    layer.appendChild(el);
-    const bird = { el, body };
+
+    // click / tap a bird to send it flying
+    body.querySelector('.bird__hit').addEventListener('click', e => {
+      e.stopPropagation();
+      if (bird.state === 'perched') leave(bird, true); else bird.scared = true;
+    });
 
     const start = origin ? { ...origin, x: origin.x + rand(-40, 40), y: origin.y + rand(-30, 30) } : edgePoint();
-    const spot = Math.random() < .8 ? findPerch() : null;
-
+    const spot = Math.random() < .9 ? findPerch(bird) : null;
     if (!spot) { // just passing through
-      const end = edgePoint(start.side);
-      fly(bird, start, end, rand(6000, 9000), easeInOut, { fadeIn: true }, () => el.remove());
+      bird.state = 'passing';
+      fly(bird, start, edgePoint(start.side), rand(6000, 9000), easeInOut, { fadeIn: true }, () => remove(bird));
       return;
     }
-
-    perched.set(el, spot); // reserve the spot while approaching
-    fly(bird, start, { x: spot.x, y: spot.y - 10 }, rand(3200, 5200), easeOut, { land: true, fadeIn: true }, () => {
-      const pt = wirePoint(spot.path, spot.len);
-      el.style.transform = `translate3d(${pt.x}px, ${pt.y}px, 0)`;
-      el.classList.remove('is-gliding');
-      el.classList.add('is-perched');
-
-      const stay = rand(3500, 8500);
-      if (Math.random() < .5) setTimeout(() => {
-        body.style.setProperty('--dir', -(+body.style.getPropertyValue('--dir') || 1));
-      }, stay * rand(.3, .7));
-
-      setTimeout(() => {
-        const from = wirePoint(spot.path, spot.len);
-        perched.delete(el);
-        el.classList.remove('is-perched');
-        const ang = rand(-160, -20) * Math.PI / 180, d = rand(500, 900);
-        fly(bird, { x: from.x, y: from.y - 10 }, { x: from.x + Math.cos(ang) * d, y: from.y + Math.sin(ang) * d },
-            rand(2600, 4000), easeIn, { fadeOut: true }, () => el.remove());
-      }, stay);
-    });
+    bird.spot = spot; // reserve while approaching
+    fly(bird, start, { x: spot.x, y: spot.y - 10 }, rand(3200, 5200), easeOut, { land: true, fadeIn: true }, () => land(bird, spot));
   }
 
   // Keep perched birds exactly on their wire when the window resizes
   addEventListener('resize', () => {
-    perched.forEach((spot, el) => {
-      if (!el.classList.contains('is-perched')) return;
-      const pt = wirePoint(spot.path, spot.len);
-      el.style.transform = `translate3d(${pt.x}px, ${pt.y}px, 0)`;
+    birds.forEach(b => {
+      if (b.state !== 'perched' || !b.spot) return;
+      const pt = wirePoint(b.spot.path, b.spot.len);
+      place(b, pt.x, pt.y);
     });
   }, { passive: true });
 
-  let heroVisible = true;
   new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting; }).observe(hero);
 
-  (function schedule() {
-    const max = isMobile() ? 5 : 8;
-    if (heroVisible && !document.hidden && layer.childElementCount < max) {
-      if (Math.random() < .3) { // a small flock
-        const origin = edgePoint(), n = 2 + Math.floor(Math.random() * 2);
-        const sp = SPECIES[Math.floor(Math.random() * SPECIES.length)];
-        for (let i = 0; i < n; i++) setTimeout(() => spawn(origin, sp), i * rand(150, 450));
+  (function arrivals() {
+    const max = isMobile() ? 3 : 4;
+    if (heroVisible && !document.hidden && birds.size < max) {
+      if (Math.random() < .15 && birds.size <= max - 2) {
+        const origin = edgePoint(), sp = pick(SPECIES);
+        spawn(origin, sp);
+        setTimeout(() => spawn(origin, sp), rand(200, 500));
       } else spawn();
     }
-    setTimeout(schedule, rand(1800, 4200));
+    setTimeout(arrivals, rand(5000, 10000));
   })();
   setTimeout(spawn, 400);
+  setTimeout(spawn, 2600);
+
+  for (let i = 0, n = isMobile() ? 3 : 5; i < n; i++) setTimeout(addInsect, 300 + i * 500);
+  requestAnimationFrame(insectLoop);
 })();
