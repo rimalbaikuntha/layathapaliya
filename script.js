@@ -345,8 +345,8 @@
     if (performance.now() > bird.leaveAt) return leave(bird);
     if (!heroVisible || document.hidden) return schedule(bird, 2000);
 
-    const prey = nearestInsect(bird, 300);
-    if (prey && Math.random() < .4) return sally(bird, prey);
+    const prey = nearestInsect(bird, 450);
+    if (prey) return sally(bird, prey);
 
     const roll = Math.random() * 15;
     if (roll < 3) return shuffle(bird);
@@ -413,21 +413,61 @@
     play(bird, 'is-poop', 800);
   }
 
-  /* ---------- insects ---------- */
-  function addInsect() {
+  /* ---------- insects: appear now and then, near a perched bird ---------- */
+  function addInsect(near) {
     const r = box();
     for (let i = 0; i < 25; i++) {
-      const path = pick(wires);
-      const pt = wirePoint(path, path.getTotalLength() * rand(.05, .95));
-      const hy = pt.y - rand(25, 80);
-      if (pt.x < 30 || pt.x > r.width - 30 || hy < 100 || isBlocked(pt.x, hy)) continue;
+      const x = near.x + rand(-170, 170), y = near.y - rand(35, 120);
+      if (x < 30 || x > r.width - 30 || y < 100 || y > r.height - 20 || isBlocked(x, y)) continue;
       const el = document.createElement('span');
       el.className = 'insect';
       layer.appendChild(el);
-      insects.push({ el, x: pt.x, y: hy, hx: pt.x, hy, vx: 0, vy: 0, hunted: false });
-      return;
+      const ins = { el, x, y, hx: x, hy: y, vx: 0, vy: 0, hunted: false };
+      insects.push(ins);
+      // if nobody catches it, it flies off after a while
+      setTimeout(() => { if (!ins.hunted) vanish(ins); }, rand(5000, 8000));
+      return ins;
     }
+    return null;
   }
+
+  function vanish(ins) {
+    const idx = insects.indexOf(ins);
+    if (idx > -1) insects.splice(idx, 1);
+    ins.el.classList.add('is-eaten');
+    setTimeout(() => ins.el.remove(), 250);
+  }
+
+  // The closest bird on the wire spots the insect and goes for it right away
+  function react(ins) {
+    let best = null, bestD = 450;
+    birds.forEach(b => {
+      if (b.state !== 'perched' || !b.spot) return;
+      const pt = wirePoint(b.spot.path, b.spot.len);
+      const d = Math.hypot(ins.x - pt.x, ins.y - pt.y);
+      if (d < bestD) { best = b; bestD = d; }
+    });
+    if (!best) return;
+    const hunter = best;
+    hunter.state = 'busy'; // claim it so no other action starts
+    clearTimeout(hunter.timer);
+    setTimeout(() => {
+      if (!hunter.el.isConnected || !insects.includes(ins) || ins.hunted) { hunter.state = 'perched'; return schedule(hunter); }
+      hunter.state = 'perched';
+      sally(hunter, ins);
+    }, rand(250, 650));
+  }
+
+  (function insectWaves() {
+    const sitters = [...birds].filter(b => b.state === 'perched' && b.spot);
+    if (heroVisible && !document.hidden && sitters.length) {
+      const sitter = pick(sitters);
+      const near = wirePoint(sitter.spot.path, sitter.spot.len);
+      const n = Math.random() < .35 ? 2 : 1;
+      for (let i = 0; i < n; i++) setTimeout(() => { const ins = addInsect(near); if (ins) react(ins); }, i * rand(500, 1200));
+    }
+    setTimeout(insectWaves, rand(8000, 15000));
+  })();
 
   function nearestInsect(bird, maxDist) {
     const pt = wirePoint(bird.spot.path, bird.spot.len);
@@ -465,7 +505,6 @@
     if (idx > -1) insects.splice(idx, 1);
     prey.el.classList.add('is-eaten');
     setTimeout(() => prey.el.remove(), 250);
-    setTimeout(addInsect, rand(4000, 9000));
   }
 
   // Gnat-like wandering around a slowly drifting home point
@@ -552,6 +591,5 @@
   setTimeout(spawn, 400);
   setTimeout(spawn, 2600);
 
-  for (let i = 0, n = isMobile() ? 3 : 5; i < n; i++) setTimeout(addInsect, 300 + i * 500);
   requestAnimationFrame(insectLoop);
 })();
