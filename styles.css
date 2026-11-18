@@ -112,21 +112,22 @@ p { margin: 0 0 1em; }
 .hero__contours path { vector-effect: non-scaling-stroke; }
 
 /* Birds */
-.birds { position: absolute; inset: 0; color: var(--forest-800); }
-.bird { position: absolute; left: 0; top: 0; opacity: .85; will-change: transform, opacity; }
+.birds { position: absolute; inset: 0; }
+.bird { position: absolute; left: 0; top: 0; will-change: transform, opacity; }
 .bird__body { position: absolute; transform: scale(calc(var(--s, 1) * var(--dir, 1)), var(--s, 1)); transition: transform .3s var(--ease); }
-.bird svg { position: absolute; overflow: visible; fill: currentColor; }
-.bird__fly { width: 24px; height: 12px; left: -12px; top: -6px; }
-.bird__wings { transform-origin: 12px 6px; animation: flap var(--flap, .22s) ease-in-out infinite alternate; }
-.bird__wings path { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
-.bird.is-gliding .bird__wings { animation-duration: .55s; }
-.bird__sit { width: 16px; height: 14px; left: -8px; top: -13.5px; display: none; transform-origin: 50% 100%; }
-.bird__legs { fill: none; stroke: currentColor; stroke-width: .9; stroke-linecap: round; }
+.bird svg { position: absolute; overflow: visible; filter: drop-shadow(0 1px 1px rgba(10, 31, 23, .18)); }
+.bird__fly { width: 34px; height: 23px; left: -17px; top: -11.5px; }
+.bird__fly .w-near, .bird__fly .w-far { transform-origin: 19px 14px; animation: flap var(--flap, .2s) ease-in-out infinite alternate; }
+.bird__fly .w-far { animation-delay: -.05s; }
+.bird.is-gliding .w-near, .bird.is-gliding .w-far { animation: none; transform: scaleY(.18); transition: transform .3s; }
+.bird__sit { width: 30px; height: 24px; left: -14px; top: -21px; display: none; transform-origin: 46% 87%; }
+.bird__tail { transform-origin: 10px 19px; animation: flick 4.5s ease-in-out var(--flick, 0s) infinite; }
 .bird.is-perched .bird__fly { display: none; }
-.bird.is-perched .bird__sit { display: block; animation: settle .5s var(--ease), idle 2.8s ease-in-out .5s infinite; }
-@keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(-.55); } }
-@keyframes settle { 0% { transform: translateY(-4px) scaleY(1.08); } 60% { transform: scaleY(.86); } 100% { transform: none; } }
-@keyframes idle { 0%, 100% { transform: none; } 50% { transform: scaleY(.94); } }
+.bird.is-perched .bird__sit { display: block; animation: settle .5s var(--ease), idle 3s ease-in-out .5s infinite; }
+@keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(-.8); } }
+@keyframes settle { 0% { transform: translateY(-4px) scaleY(1.06); } 60% { transform: scaleY(.9); } 100% { transform: none; } }
+@keyframes idle { 0%, 100% { transform: none; } 50% { transform: scaleY(.96); } }
+@keyframes flick { 0%, 86%, 100% { transform: none; } 91% { transform: rotate(14deg); } 95% { transform: rotate(-4deg); } }
 @keyframes drift { 50% { transform: translate(40px, 30px) scale(1.08); } }
 
 .hero__grid { position: relative; display: grid; grid-template-columns: 1.1fr .9fr; gap: 64px; align-items: center; }
