@@ -143,10 +143,11 @@
     { back: '#8b5a33', wing: '#7a4c2a', head: '#8f8f8f', throat: '#262626', belly: '#dcd2c2', tail: '#6e4527', beak: '#3a3a3a', feet: '#8a6a50', tailType: 'short', beakType: 'short', bar: '#f4efe6' }   // house sparrow
   ];
   const TAIL_SIT = { short: 'M10 18.5 L2 22 L3.5 24 L11 21.5Z', long: 'M10 18.5 L0 26 L2.5 27.5 L11.5 21.5Z', fork: 'M10 18.5 L-1 25.5 L5 22.5 L-0.5 28.5 L11.5 21.5Z' };
-  const TAIL_FLY = { short: 'M10 15 L2 13.5 L2 18.5 L10 17.5Z', long: 'M10 15 L-1 13.5 L-1 19 L10 17.5Z', fork: 'M10 15 L-3 11 L4 15.8 L-3 21 L10 17.5Z' };
+  const TAIL_FLY = { short: 'M21 18.5 L9 15.5 L8 24.5 L21 21.5Z', long: 'M21 18.5 L4 16.5 L4 23.5 L21 21.5Z', fork: 'M21 18.5 L2 12.5 L12 20 L2 27.5 L21 21.5Z' };
   const BEAK_SIT = { short: 'M31.6 10 L35.6 11.3 L31.6 12.6Z', long: 'M31.4 9.9 L39 11.5 L31.4 12.9Z' };
-  const BEAK_FLY = { short: 'M34.4 12.5 L37.6 13.6 L34.4 14.6Z', long: 'M34.2 12.4 L40.5 13.7 L34.2 14.9Z' };
-  const WING = 'M19 14C18 7 13 1.5 5 -1C6.5 1 7.5 2.6 7 3C9 3.6 9.5 5.3 9 6C11 6.5 11.5 8.3 11 9C13 9.6 14 11.5 14 12.5C15.5 13.4 16.5 14.6 17.5 15.5Z';
+  const BEAK_FLY = { short: 'M49.2 17.4 L53.5 18.8 L49.2 20.1Z', long: 'M49 17.2 L57 18.9 L49 20.5Z' };
+  // Long, broad wing with separated primary feathers ("fingers") along the trailing edge
+  const WING = 'M37 18.5C35 11 26 4 12 0.2L17.5 3L15.4 4.3L20.2 5.9L18.2 7.4L22.4 8.8L20.7 10.4L24.3 11.6L23 13.3L25.8 14.7C24.6 16.4 23.6 18.4 23 20.5Z';
 
   function sitSVG(s) {
     return `<svg class="bird__sit" viewBox="0 0 40 32">
@@ -170,22 +171,23 @@
 
   function flySVG(s) {
     const wing = (cls, dark) => `<g class="${cls}"><path d="${WING}" fill="${s.wing}"/>
-      <path d="M19 14C18.2 9 15 5 10 2.5C14 6 16.5 10 17.6 15Z" fill="${s.back}" opacity=".9"/>
-      ${s.bar ? `<path d="M17.5 12C16 9 13.5 6.5 10.5 4.8" stroke="${s.bar}" stroke-width="1.1" fill="none" stroke-linecap="round"/>` : ''}
-      <path d="M15 12.5C12 10 9 7 7 3M12.5 13.3C10 11 8 8.5 6.5 5.5" stroke="rgba(0,0,0,.25)" stroke-width=".5" fill="none"/>
-      ${dark ? `<path d="${WING}" fill="#000" opacity=".3"/>` : ''}</g>`;
-    return `<svg class="bird__fly" viewBox="0 0 44 30">
-      <g transform="translate(1.5 -0.5)">${wing('w-far', true)}</g>
-      <path d="${TAIL_FLY[s.tailType]}" fill="${s.tail}"/>${s.pin ? `<path d="M-1 16.2 L-6 16.2" stroke="${s.tail}" stroke-width=".8" stroke-linecap="round"/>` : ''}
-      <path d="M9 16C12 12 20 11.5 27 12.5C31 13.2 32.5 16 29.5 17.8C24.5 20 15 20 9 16Z" fill="${s.back}"/>
-      <path d="M29.8 15.6C30.6 17.4 27.5 19.4 22 19.6C17 19.8 12.5 18.5 10.5 17C15 18 22 18 26 17C28 16.5 29.2 16 29.8 15.6Z" fill="${s.belly}"/>
-      ${s.vent ? `<ellipse cx="12.5" cy="17.6" rx="2" ry="1" fill="${s.vent}"/>` : ''}
-      <path d="M17 18.8 L13.5 19.8" stroke="${s.feet}" stroke-width=".9" stroke-linecap="round"/>
-      ${s.crest ? `<path d="M29 10.5 L30.2 7.4 L32.6 10Z" fill="${s.head}"/>` : ''}
-      <circle cx="31.5" cy="13.6" r="3.7" fill="${s.head}"/>
-      <path d="M29.5 15.8C31 17.6 34 17 35 14.8C33.8 16.2 31.6 16.6 29.5 15.8Z" fill="${s.throat}"/>
-      ${s.stripe ? '<path d="M29 13 L35.5 13.3 L35.5 14.2 L29 14.2Z" fill="#111"/>' : ''}
-      <circle cx="33" cy="12.9" r=".85" fill="#0d0d0d"/><circle cx="33.3" cy="12.6" r=".3" fill="#fff"/>
+      <path d="M37 18.5C35.5 12.5 29 7 21 3.5C27 8 31 12.5 32.5 19Z" fill="${s.back}" opacity=".9"/>
+      ${s.bar ? `<path d="M33 15.5C30.5 11.5 27 8.5 22.5 6" stroke="${s.bar}" stroke-width="1.3" fill="none" stroke-linecap="round"/>` : ''}
+      <path d="M30 17C26 12 21 7 15.5 2.5M28.5 18C25.5 14 22.5 10.5 19.5 7M27 19C25.5 16.5 24.3 14.8 23 12.6" stroke="rgba(0,0,0,.22)" stroke-width=".55" fill="none"/>
+      <path d="M36 16.5C34 11 28 6 19 2.4" stroke="rgba(255,255,255,.28)" stroke-width=".8" fill="none"/>
+      ${dark ? `<path d="${WING}" fill="#000" opacity=".32"/>` : ''}</g>`;
+    return `<svg class="bird__fly" viewBox="0 0 64 40">
+      <g transform="translate(3 -1.5)">${wing('w-far', true)}</g>
+      <path d="${TAIL_FLY[s.tailType]}" fill="${s.tail}"/>${s.pin ? `<path d="M4 20 L-3 20" stroke="${s.tail}" stroke-width="1" stroke-linecap="round"/>` : ''}
+      <path d="M18 20C22 16 32 15 40 16C45 16.6 47 19 45 21.5C41 24.5 28 24.5 18 20Z" fill="${s.back}"/>
+      <path d="M45.3 20.6C44.6 23 39 24.6 31 24.4C25 24.2 21 22.6 19 21C25 22.4 34 22.6 40 21.8C42.5 21.4 44 21 45.3 20.6Z" fill="${s.belly}"/>
+      <path d="M22 18.6C27 16 35 15.4 41 16.4C35 16.6 28 17.6 22 19.6Z" fill="#fff" opacity=".2"/>
+      ${s.vent ? `<ellipse cx="23" cy="22" rx="2.6" ry="1.3" fill="${s.vent}"/>` : ''}
+      ${s.crest ? `<path d="M41.5 15.2 L43 11 L46.5 14.2Z" fill="${s.head}"/>` : ''}
+      <circle cx="45" cy="18.5" r="4.6" fill="${s.head}"/>
+      <path d="M42.5 21C44.5 23.3 48.5 22.6 49.5 19.6C48 21.4 45 21.9 42.5 21Z" fill="${s.throat}"/>
+      ${s.stripe ? '<path d="M42 17.6 L50 18 L50 19.3 L42 19.2Z" fill="#111"/>' : ''}
+      <circle cx="46.9" cy="17.6" r="1.05" fill="#0d0d0d"/><circle cx="47.25" cy="17.25" r=".36" fill="#fff"/>
       <path d="${BEAK_FLY[s.beakType]}" fill="${s.beak}"/>
       ${wing('w-near', false)}
     </svg>`;
@@ -273,8 +275,15 @@
     el.innerHTML = `<div class="bird__body">${flySVG(sp)}${sitSVG(sp)}</div>`;
     const body = el.firstChild;
     body.style.setProperty('--s', rand(.85, 1.1).toFixed(2));
-    body.style.setProperty('--flap', rand(.15, .22).toFixed(2) + 's');
+    body.style.setProperty('--flap', rand(.26, .34).toFixed(2) + 's');
     body.style.setProperty('--flick', rand(-4, 0).toFixed(2) + 's');
+    // natural flap-flap-glide rhythm while in the air
+    const coast = setInterval(() => {
+      if (!el.isConnected) return clearInterval(coast);
+      if (el.classList.contains('is-perched') || Math.random() < .45) return;
+      el.classList.add('is-coasting');
+      setTimeout(() => el.classList.remove('is-coasting'), rand(450, 1000));
+    }, rand(1300, 2100));
     layer.appendChild(el);
     const bird = { el, body };
 

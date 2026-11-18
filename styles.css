@@ -116,15 +116,21 @@ p { margin: 0 0 1em; }
 .bird { position: absolute; left: 0; top: 0; will-change: transform, opacity; }
 .bird__body { position: absolute; transform: scale(calc(var(--s, 1) * var(--dir, 1)), var(--s, 1)); transition: transform .3s var(--ease); }
 .bird svg { position: absolute; overflow: visible; filter: drop-shadow(0 1px 1px rgba(10, 31, 23, .18)); }
-.bird__fly { width: 34px; height: 23px; left: -17px; top: -11.5px; }
-.bird__fly .w-near, .bird__fly .w-far { transform-origin: 19px 14px; animation: flap var(--flap, .2s) ease-in-out infinite alternate; }
-.bird__fly .w-far { animation-delay: -.05s; }
-.bird.is-gliding .w-near, .bird.is-gliding .w-far { animation: none; transform: scaleY(.18); transition: transform .3s; }
+.bird__fly { width: 40px; height: 25px; left: -20px; top: -12.5px; }
+.bird__fly .w-near, .bird__fly .w-far { transform-origin: 30px 19.5px; animation: flap var(--flap, .3s) ease-in-out infinite; transition: transform .35s ease-out; }
+.bird__fly .w-far { animation-delay: -.04s; }
+.bird.is-gliding .w-near, .bird.is-gliding .w-far,
+.bird.is-coasting .w-near, .bird.is-coasting .w-far { animation: none; transform: scaleY(.42) skewX(-8deg); }
 .bird__sit { width: 30px; height: 24px; left: -14px; top: -21px; display: none; transform-origin: 46% 87%; }
 .bird__tail { transform-origin: 10px 19px; animation: flick 4.5s ease-in-out var(--flick, 0s) infinite; }
 .bird.is-perched .bird__fly { display: none; }
 .bird.is-perched .bird__sit { display: block; animation: settle .5s var(--ease), idle 3s ease-in-out .5s infinite; }
-@keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(-.8); } }
+/* fast downstroke, slower recovery upstroke; tips lag slightly */
+@keyframes flap {
+  0% { transform: scaleY(1) skewX(-6deg); }
+  40% { transform: scaleY(-.7) skewX(6deg); }
+  100% { transform: scaleY(1) skewX(-6deg); }
+}
 @keyframes settle { 0% { transform: translateY(-4px) scaleY(1.06); } 60% { transform: scaleY(.9); } 100% { transform: none; } }
 @keyframes idle { 0%, 100% { transform: none; } 50% { transform: scaleY(.96); } }
 @keyframes flick { 0%, 86%, 100% { transform: none; } 91% { transform: rotate(14deg); } 95% { transform: rotate(-4deg); } }
