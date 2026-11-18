@@ -135,17 +135,17 @@
 
   // Real birds commonly seen on wires in Nepal
   const SPECIES = [
-    { back: '#1f3f7f', wing: '#162f60', head: '#1f3f7f', throat: '#b8462b', belly: '#f4e8d6', tail: '#162f60', beak: '#2a2a2a', feet: '#3a2f2a', tailType: 'fork', beakType: 'short' },               // barn swallow
+    { back: '#1f3f7f', wing: '#162f60', head: '#1f3f7f', throat: '#b8462b', belly: '#e6c49a', tail: '#162f60', beak: '#2a2a2a', feet: '#3a2f2a', tailType: 'fork', beakType: 'short' },               // barn swallow
     { back: '#58a83a', wing: '#4a9431', head: '#a6b83a', throat: '#3fb0c4', belly: '#86c25a', tail: '#4a9431', beak: '#1d1d1d', feet: '#4a3a2a', tailType: 'long', beakType: 'long', stripe: true, pin: true }, // green bee-eater
     { back: '#1f93d6', wing: '#176fb4', head: '#7b3a1d', throat: '#ffffff', belly: '#7b3a1d', tail: '#1f93d6', beak: '#d8352a', feet: '#d8352a', tailType: 'short', beakType: 'long' },              // white-throated kingfisher
-    { back: '#55483f', wing: '#463a32', head: '#1a1614', throat: '#1a1614', belly: '#ddd5c8', tail: '#2e2622', beak: '#151515', feet: '#2a2a2a', tailType: 'long', beakType: 'short', crest: true, vent: '#d42f2f' }, // red-vented bulbul
-    { back: '#151515', wing: '#151515', head: '#151515', throat: '#151515', belly: '#f3f3f3', tail: '#151515', beak: '#151515', feet: '#333333', tailType: 'long', beakType: 'short', bar: '#ffffff' },  // oriental magpie-robin
-    { back: '#8b5a33', wing: '#7a4c2a', head: '#8f8f8f', throat: '#262626', belly: '#dcd2c2', tail: '#6e4527', beak: '#3a3a3a', feet: '#8a6a50', tailType: 'short', beakType: 'short', bar: '#f4efe6' }   // house sparrow
+    { back: '#55483f', wing: '#463a32', head: '#1a1614', throat: '#1a1614', belly: '#cbbfa9', tail: '#2e2622', beak: '#151515', feet: '#2a2a2a', tailType: 'long', beakType: 'short', crest: true, vent: '#d42f2f' }, // red-vented bulbul
+    { back: '#151515', wing: '#151515', head: '#151515', throat: '#151515', belly: '#e4e4df', tail: '#151515', beak: '#151515', feet: '#333333', tailType: 'long', beakType: 'short', bar: '#ffffff' },  // oriental magpie-robin
+    { back: '#8b5a33', wing: '#7a4c2a', head: '#8f8f8f', throat: '#262626', belly: '#cdb999', tail: '#6e4527', beak: '#3a3a3a', feet: '#8a6a50', tailType: 'short', beakType: 'short', bar: '#f4efe6' }   // house sparrow
   ];
   const TAIL_SIT = { short: 'M10 18.5 L2 22 L3.5 24 L11 21.5Z', long: 'M10 18.5 L0 26 L2.5 27.5 L11.5 21.5Z', fork: 'M10 18.5 L-1 25.5 L5 22.5 L-0.5 28.5 L11.5 21.5Z' };
   const TAIL_FLY = { short: 'M21 18.5 L9 15.5 L8 24.5 L21 21.5Z', long: 'M21 18.5 L4 16.5 L4 23.5 L21 21.5Z', fork: 'M21 18.5 L2 12.5 L12 20 L2 27.5 L21 21.5Z' };
   const BEAK_SIT = { short: 'M31.6 10 L35.6 11.3 L31.6 12.6Z', long: 'M31.4 9.9 L39 11.5 L31.4 12.9Z' };
-  const BEAK_FLY = { short: 'M49.2 17.4 L53.5 18.8 L49.2 20.1Z', long: 'M49 17.2 L57 18.9 L49 20.5Z' };
+  const BEAK_FLY = { short: 'M50 17.4 L54.4 18.9 L50 20.3Z', long: 'M49.8 17.2 L58 19 L49.8 20.7Z' };
   // Long, broad wing with separated primary feathers ("fingers") along the trailing edge
   const WING = 'M37 18.5C35 11 26 4 12 0.2L17.5 3L15.4 4.3L20.2 5.9L18.2 7.4L22.4 8.8L20.7 10.4L24.3 11.6L23 13.3L25.8 14.7C24.6 16.4 23.6 18.4 23 20.5Z';
 
@@ -179,15 +179,16 @@
     return `<svg class="bird__fly" viewBox="0 0 64 40">
       <g transform="translate(3 -1.5)">${wing('w-far', true)}</g>
       <path d="${TAIL_FLY[s.tailType]}" fill="${s.tail}"/>${s.pin ? `<path d="M4 20 L-3 20" stroke="${s.tail}" stroke-width="1" stroke-linecap="round"/>` : ''}
-      <path d="M18 20C22 16 32 15 40 16C45 16.6 47 19 45 21.5C41 24.5 28 24.5 18 20Z" fill="${s.back}"/>
-      <path d="M45.3 20.6C44.6 23 39 24.6 31 24.4C25 24.2 21 22.6 19 21C25 22.4 34 22.6 40 21.8C42.5 21.4 44 21 45.3 20.6Z" fill="${s.belly}"/>
-      <path d="M22 18.6C27 16 35 15.4 41 16.4C35 16.6 28 17.6 22 19.6Z" fill="#fff" opacity=".2"/>
-      ${s.vent ? `<ellipse cx="23" cy="22" rx="2.6" ry="1.3" fill="${s.vent}"/>` : ''}
-      ${s.crest ? `<path d="M41.5 15.2 L43 11 L46.5 14.2Z" fill="${s.head}"/>` : ''}
-      <circle cx="45" cy="18.5" r="4.6" fill="${s.head}"/>
-      <path d="M42.5 21C44.5 23.3 48.5 22.6 49.5 19.6C48 21.4 45 21.9 42.5 21Z" fill="${s.throat}"/>
-      ${s.stripe ? '<path d="M42 17.6 L50 18 L50 19.3 L42 19.2Z" fill="#111"/>' : ''}
-      <circle cx="46.9" cy="17.6" r="1.05" fill="#0d0d0d"/><circle cx="47.25" cy="17.25" r=".36" fill="#fff"/>
+      <path d="M17 20C21 14.5 31 13.5 40 14.6C45.5 15.3 48 18.5 46 22C42 26.5 28 27 17 20Z" fill="${s.back}" stroke="rgba(0,0,0,.3)" stroke-width=".6"/>
+      <path d="M46.2 21.2C44.6 25 38.5 26.9 30.5 26.7C24.5 26.5 20 24.2 17.8 21.4C24 23.9 33 24.4 40 23.4C43 23 44.9 22.2 46.2 21.2Z" fill="${s.belly}"/>
+      <path d="M18 21.6C26 27 40 27.2 46.1 21.8" stroke="rgba(0,0,0,.32)" stroke-width=".7" fill="none"/>
+      <path d="M21.5 18.2C27 15 35 14.2 41 15.2C35 15.5 28 16.8 21.5 19.4Z" fill="#fff" opacity=".22"/>
+      ${s.vent ? `<ellipse cx="22.5" cy="23.3" rx="2.8" ry="1.4" fill="${s.vent}"/>` : ''}
+      ${s.crest ? `<path d="M41.5 14.6 L43 10.2 L46.6 13.6Z" fill="${s.head}"/>` : ''}
+      <circle cx="45.5" cy="18.5" r="5" fill="${s.head}" stroke="rgba(0,0,0,.3)" stroke-width=".6"/>
+      <path d="M42.5 21.2C44.6 23.8 48.8 23 50 19.8C48.4 21.8 45.2 22.3 42.5 21.2Z" fill="${s.throat}"/>
+      ${s.stripe ? '<path d="M41.6 17.4 L50.5 17.8 L50.5 19.2 L41.6 19.1Z" fill="#111"/>' : ''}
+      <circle cx="47.3" cy="17.4" r="1.1" fill="#0d0d0d"/><circle cx="47.7" cy="17" r=".38" fill="#fff"/>
       <path d="${BEAK_FLY[s.beakType]}" fill="${s.beak}"/>
       ${wing('w-near', false)}
     </svg>`;
