@@ -82,12 +82,14 @@ p { margin: 0 0 1em; }
 .nav__inner { display: flex; align-items: center; justify-content: space-between; }
 .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 600; }
 .brand__mark {
-  width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
-  background: var(--forest-900); color: var(--sage-200);
-  font-family: var(--font-display); font-size: 16px;
+  width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex: none;
+  background: var(--sage-200);
+  box-shadow: 0 0 0 2px var(--cream), 0 0 0 3.5px var(--moss-400);
+  transition: transform .4s var(--ease);
 }
+.brand:hover .brand__mark { transform: scale(1.06) rotate(-3deg); }
 .brand__name { font-family: var(--font-display); font-size: 19px; }
-.brand--light .brand__mark { background: var(--moss-500); color: #fff; }
+.brand--light .brand__mark { box-shadow: 0 0 0 2px var(--forest-950), 0 0 0 3.5px var(--moss-500); }
 .nav__links { display: flex; align-items: center; gap: 32px; font-size: 15px; font-weight: 500; }
 .nav__links a:not(.btn) { position: relative; color: var(--ink); }
 .nav__links a:not(.btn)::after {
